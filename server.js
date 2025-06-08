@@ -7,14 +7,20 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.OPENAI_API_KEY;
 
-app.use(cors());              // ✅ CORS 허용
-app.use(express.json());      // ✅ JSON 파싱
+// CORS 및 JSON 설정
+app.use(cors());
+app.use(express.json());
 
+// POST /ask → GPT 프록시
 app.post('/ask', async (req, res) => {
   const userMessage = req.body.message;
 
+  console.log("📥 사용자 메시지 수신:", userMessage);
+  console.log("🔑 API 키 존재 여부:", API_KEY ? "✅ 있음" : "❌ 없음");
+
   if (!userMessage) {
-    return res.status(400).json({ error: '❗ 사용자 메시지가 없습니다.' });
+    console.error("❗ 사용자 메시지가 전달되지 않았습니다.");
+    return res.status(400).json({ error: '사용자 메시지가 없습니다.' });
   }
 
   try {
@@ -34,13 +40,19 @@ app.post('/ask', async (req, res) => {
     });
 
     const data = await gptRes.json();
-    const reply = data.choices?.[0]?.message?.content ?? 'GPT 응답 오류';
+
+    console.log("🤖 GPT 응답 데이터:", data);
+
+    const reply = data.choices?.[0]?.message?.content ?? 'GPT 응답 없음';
     res.json({ reply });
+
   } catch (err) {
+    console.error("🔥 GPT API 호출 중 오류 발생:", err);
     res.status(500).json({ error: 'GPT API 호출 실패', detail: err.message });
   }
 });
 
+// 서버 시작
 app.listen(PORT, () => {
   console.log(`✅ 프록시 서버 실행 중: http://localhost:${PORT}`);
 });
