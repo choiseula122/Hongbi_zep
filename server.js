@@ -7,11 +7,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.OPENAI_API_KEY;
 
-// CORS 및 JSON 설정
-app.use(cors());
+// ✅ CORS 옵션 명시적 설정
+const corsOptions = {
+  origin: '*', // 또는 'https://hongbi-ui.vercel.app'
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+};
+
+// ✅ CORS 미들웨어 적용
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Preflight OPTIONS 요청 처리
+
+// ✅ JSON 파싱 설정
 app.use(express.json());
 
-// POST /ask → GPT 프록시
+// ✅ GPT API 프록시 엔드포인트
 app.post('/ask', async (req, res) => {
   const userMessage = req.body.message;
 
@@ -52,7 +62,7 @@ app.post('/ask', async (req, res) => {
   }
 });
 
-// 서버 시작
+// ✅ 서버 실행
 app.listen(PORT, () => {
   console.log(`✅ 프록시 서버 실행 중: http://localhost:${PORT}`);
 });
